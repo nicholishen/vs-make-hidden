@@ -80,6 +80,11 @@
                 }
             },
             {
+                "command": "make-hidden.stepBack",
+                "title": "Step back",
+                "category": "Make Hidden"
+            },
+            {
                 "command": "make-hidden.workspaceSave",
                 "title": "Save as new workspace",
                 "category": "Make Hidden"
@@ -129,6 +134,10 @@
                     "command": "make-hidden.workspaceDelete",
                     "when": "view == makeHiddenViewPane",
                     "group": "workspaceManager"
+                },
+                {
+                    "command": "make-hidden.stepBack",
+                    "when": "view == makeHiddenViewPane"
                 }
             ]
         }

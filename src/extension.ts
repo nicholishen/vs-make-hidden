@@ -55,9 +55,13 @@ export function activate( context : vscode.ExtensionContext ) {
     /* --------------------
      * Show Cmd's
     */
-    ['removeItem', 'removeAllItems'].forEach( ( cmd ) => {
+    ['removeItem', 'removeAllItems', 'stepBack'].forEach( ( cmd ) => {
         let registerCommand = vscode.commands.registerCommand(`make-hidden.${cmd}`, ( excludeString : string ) =>  {
             switch( cmd ){
+                case 'stepBack' :
+                    excludeItemsController.exeAction('pop-back')
+                break;
+
                 case 'removeItem' :
                     if( typeof excludeString == 'string' && excludeString.length > 0 ) {
                         excludeItemsController.removeItem( excludeString );

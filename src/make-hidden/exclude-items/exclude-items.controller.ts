@@ -29,6 +29,18 @@ export default class ExcludeItemsController extends ExcludeItemsProvider {
     }
 
     /* --------------------
+    */
+    public exeAction( action : string = '' ) {
+        console.log( 'exeAction' );
+        switch( action ){
+            case 'pop-back' :
+                console.log('pop-back');
+                this.HSPop();
+            break;
+        }
+    }
+
+    /* --------------------
      * Remove all regex item's from config list
      * dec: removes all items in get_workspace_configuration(files.exclude)
     */
@@ -244,4 +256,5 @@ export default class ExcludeItemsController extends ExcludeItemsProvider {
             });
         }
     }
+
 }

@@ -13,6 +13,11 @@ export default class ExcludeItemsProvider implements vscode.TreeDataProvider<jso
     private tree : json.Node;
     private newTree : json.Node;
 
+    private HistoryStack = {
+        currentIndex     : 0,
+        stack : [] // filesExcludeBank
+    }
+
     constructor() {
         /* -- Render our tree DOM -- */
         this.parseTree();
@@ -125,34 +130,68 @@ export default class ExcludeItemsProvider implements vscode.TreeDataProvider<jso
      * Save configuration
      * dec: Save files.exclude to configuration_file_path
     */
-    public saveFilesExcludeObject( newExcludeObject : any )  {
+    public saveFilesExcludeObject( newExcludeObj : any = null )  {
+        // FIX
+        console.log( 'newExcludeObj', newExcludeObj );
+        newExcludeObj = this.fixRemove__Error( newExcludeObj );
 
-        let vsSettingsKeys: string = 'files.exclude';
+        this.HSAddNew( newExcludeObj );
+        this.save( this.HSGetCurrent() );
+    }
 
+    /* --------------------
+    */
+    public save( newExcludeObj : any = null ){
         /* -- check to see if there's a workspace available, if ask to create one -- */
         if( ! Util.fileExists( this.getSettingPath() ) ) {
             this.creatSettingsFile();
+            return;
         }
 
-        else {
-            fs.readFile( this.getSettingPath(), 'utf8' , ( err, rawFileData ) => {
-                /* -- Append the new config data to the main setting doc -- */
-                var settingsDataParse = JSON.parse( rawFileData );
-                settingsDataParse[ vsSettingsKeys ] = newExcludeObject;
+        fs.readFile( this.getSettingPath(), 'utf8' , ( err, rawFileData ) => {
+            /* -- Append the new config data to the main setting doc -- */
+            var settingsObj = JSON.parse( rawFileData );
+                settingsObj[ 'files.exclude' ] = newExcludeObj;
 
-                /* -- Make string and JSON valid -- */
-                let formattedSettings : any = JSON.stringify(
-                    settingsDataParse , null, 2
-                ).replace(/^[^{]+|[^}]+$/, '').replace(/(.+?[^:])\/\/.+$/gm, '$1');
+            /* -- Make string and JSON valid -- */
+            let formattedSettings : any = JSON.stringify( settingsObj , null, 2
+            ).replace(/^[^{]+|[^}]+$/, '').replace(/(.+?[^:])\/\/.+$/gm, '$1');
 
-                // let formattedSettings : any = JSON.stringify(settingsDataParse, null, "\t");
+            // let formattedSettings : any = JSON.stringify(settingsDataParse, null, "\t");
+            fs.writeFile( this.getSettingPath() , formattedSettings , ( err ) => {
+                /* -- Refresh out tree for view -- */
+                this.refreshListView();
+            } );
+        });
+    }
 
-                fs.writeFile( this.getSettingPath() , formattedSettings , ( err ) => {
-                    /* -- Refresh out tree for view -- */
-                    this.refreshListView();
-                } );
-            });
-        }
+    /* --------------------
+    */
+    public HSAddNew( newExcludeObj : any ){
+        var bank = this.HistoryStack.stack;
+            bank.push( newExcludeObj );
+        this.HistoryStack.currentIndex = bank.length - 1;
+        console.log( 'updateHistoryStack', this.HistoryStack );
+    }
+
+    /* --------------------
+    */
+    public HSPop(){
+        var hs = this.HistoryStack;
+        hs.stack.pop();
+        console.log( 'hs 1', hs );
+
+        var record = this.HSGetCurrent();
+        hs.stack.pop();
+        console.log( 'hs 2', hs );
+        this.saveFilesExcludeObject( record );
+    }
+
+    /* --------------------
+    */
+    public HSGetCurrent(){
+        var hs = this.HistoryStack;
+        return hs.stack[ hs.currentIndex ]
     }
 
     /* --------------------
